@@ -56,7 +56,7 @@ def get_output_path(base_dir, graph_type, dataset, atlas, method, subject_id, ta
     output_folder = os.path.join(base_dir, graph_type, dataset, atlas, method)
     
     if graph_type == "static":
-        filename = f"dataset-{dataset}_sub-{subject_id}_task-{task}_desc-graphconstructionedge_atlas-{atlas}_contrmethd-{method}.pkl"
+        filename = f"dataset-{dataset}_sub-{subject_id}_task-{task}_desc-staticgraphconstructionedge_atlas-{atlas}_contrmethd-{method}.pkl"
     else:  # dynamic graphs
         filename = f"dataset-{dataset}_sub-{subject_id}_task-{task}_desc-dynamicgraphconstructionedge_atlas-{atlas}_contrmethd-{method}.pkl"
     
