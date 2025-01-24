@@ -15,6 +15,7 @@ from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity_skle
 from sklearn.neighbors import NearestNeighbors
 from scipy.spatial.distance import cdist
 from lingam import DirectLiNGAM
+from scipy.linalg import pinv
 
 
 
@@ -38,34 +39,49 @@ def pearson_correlation(data):
 
 def cosine_similarity(data):
     return cosine_similarity_sklearn(data.T)
-
 def partial_correlation(data):
-    # Get the number of ROIs (columns)
-    num_rois = data.shape[1]
+    # Compute the covariance matrix
+    cov_matrix = np.cov(data, rowvar=False)
     
-    # Initialize an empty DataFrame to store partial correlation results
-    results = pd.DataFrame(index=range(num_rois), columns=range(num_rois))
+    # Compute the precision matrix (inverse of the covariance matrix)
+    precision_matrix = pinv(cov_matrix)
     
-    # Iterate over each pair of ROIs
-    for i in range(num_rois):
-        for j in range(num_rois):
-            if i != j:
-                # Define covariates as all ROIs except the current pair (i, j)
-                covars = [k for k in range(num_rois) if k != i and k != j]
+    # Compute partial correlations from the precision matrix
+    diag = np.diag(precision_matrix)
+    partial_corr_matrix = -precision_matrix / np.sqrt(np.outer(diag, diag))
+    np.fill_diagonal(partial_corr_matrix, 1.0)  # Set diagonal to 1.0
+    
+    return partial_corr_matrix
+
+
+
+# def partial_correlation(data):
+#     # Get the number of ROIs (columns)
+#     num_rois = data.shape[1]
+    
+#     # Initialize an empty DataFrame to store partial correlation results
+#     results = pd.DataFrame(index=range(num_rois), columns=range(num_rois))
+    
+#     # Iterate over each pair of ROIs
+#     for i in range(num_rois):
+#         for j in range(num_rois):
+#             if i != j:
+#                 # Define covariates as all ROIs except the current pair (i, j)
+#                 covars = [k for k in range(num_rois) if k != i and k != j]
                 
-                # Calculate the partial correlation between ROI i and ROI j
-                partial_corr_result = pg.partial_corr(data, x=i, y=j, covar=covars)
+#                 # Calculate the partial correlation between ROI i and ROI j
+#                 partial_corr_result = pg.partial_corr(data, x=i, y=j, covar=covars)
                 
-                # Store the partial correlation coefficient in the results DataFrame
-                results.loc[i, j] = partial_corr_result['r'].values[0]
-            else:
-                # Fill diagonal with NaN or 1.0 as self-correlation is not relevant
-                results.loc[i, j] = 1.0
+#                 # Store the partial correlation coefficient in the results DataFrame
+#                 results.loc[i, j] = partial_corr_result['r'].values[0]
+#             else:
+#                 # Fill diagonal with NaN or 1.0 as self-correlation is not relevant
+#                 results.loc[i, j] = 1.0
     
-    # Convert results DataFrame to float type
-    results = results.astype(float)
+#     # Convert results DataFrame to float type
+#     results = results.astype(float)
     
-    return results
+#     return results
 
 def correlations_correlation(data):
     pearson_correlation_matrix = np.corrcoef(data, rowvar=False)

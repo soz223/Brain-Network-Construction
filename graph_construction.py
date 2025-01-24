@@ -12,27 +12,40 @@ import itertools
 
 # Define default values for datasets, atlases, and construction methods.
 DEFAULT_DATASETS = [
-    "ADNI",
+    # "ADNI",
     "ADHD",
-    "HCP",
+    # "HCP",
 ]
 
 DEFAULT_ATLASES = [
-    "AAL116",
-    "PP264",
+    # "AAL116",
+    # "PP264",
     "Schaefer100"
 ]
 
 # The construction_methods dictionary holds mapping names to functions.
 DEFAULT_CONSTRUCTION_METHODS = {
     "cosine_similarity": cosine_similarity,
-    # Add additional methods if needed:
     "pearson_correlation": pearson_correlation,
+    "partial_correlation": partial_correlation,
+    "correlations_correlation": correlations_correlation,
+    "associated_high_order_fc": associated_high_order_fc,
+    "euclidean_distance": euclidean_distance,
+    "knn_graph": knn_graph,
+    "spearman_correlation": spearman_correlation,
+    "kendall_correlation": kendall_correlation,
+    "mutual_information": mutual_information,
+    "cross_correlation": cross_correlation,
+    "granger_causality": granger_causality,
+    "generalised_synchronisation_matrix": generalised_synchronisation_matrix,
+    "patels_conditional_dependence_measures_kappa": patels_conditional_dependence_measures_kappa,
+    "patels_conditional_dependence_measures_tau": patels_conditional_dependence_measures_tau,
+    "lingam": lingam,
 }
 
 # Base directories for input data and storing graph results.
 INPUT_DATA_DIR = "./fMRIROItimeseries"
-BASE_RESULTS_DIR = "../graphconstructionedge"
+BASE_RESULTS_DIR = "./graphconstructionedge"
 
 def get_output_path(base_dir, graph_type, dataset, atlas, method, subject_id, task="rest", hierarchy="dataset_first"):
     """
@@ -83,6 +96,10 @@ def process_file(dataset, atlas, method, subject_id, task_name="rest"):
 
         # Load data from the input file
         data = pd.read_pickle(input_filepath)
+
+        # Convert data to DataFrame if it is a numpy array
+        if isinstance(data, np.ndarray):
+            data = pd.DataFrame(data)
 
         # Construct output path and create directory if needed
         output_folder, output_filename = get_output_path(BASE_RESULTS_DIR, "static", dataset, atlas, method, subject_id, task=task_name)
@@ -219,39 +236,13 @@ def main():
         print("No tasks found. Please check your input directories and filenames.")
         return
 
-    # # Process static graphs
-    # print("Starting static graph processing...")
-    # with ProcessPoolExecutor() as executor:
-    #     with tqdm(total=len(tasks), desc="Static Graph Progress", unit="task") as pbar:
-    #         future_to_task = {
-    #             executor.submit(
-    #                 process_file,
-    #                 dataset,
-    #                 atlas,
-    #                 method,
-    #                 subject_id
-    #             ): (dataset, atlas, method, subject_id)
-    #             for dataset, atlas, method, subject_id in tasks
-    #         }
-    #         for future in as_completed(future_to_task):
-    #             dataset, atlas, method, subject_id = future_to_task[future]
-    #             try:
-    #                 status = future.result()
-    #                 tqdm.write(status)
-    #             except Exception as exc:
-    #                 tqdm.write(f"Error in {dataset}, {atlas}, {method}, {subject_id}: {exc}")
-    #             finally:
-    #                 pbar.update(1)
-
-    # print("Static graph processing complete.")
-
-    # Process dynamic graphs
-    print("Starting dynamic graph processing...")
+    # Process static graphs
+    print("Starting static graph processing...")
     with ProcessPoolExecutor() as executor:
-        with tqdm(total=len(tasks), desc="Dynamic Graph Progress", unit="task") as pbar:
+        with tqdm(total=len(tasks), desc="Static Graph Progress", unit="task") as pbar:
             future_to_task = {
                 executor.submit(
-                    process_dynamic_file,
+                    process_file,
                     dataset,
                     atlas,
                     method,
@@ -269,7 +260,33 @@ def main():
                 finally:
                     pbar.update(1)
 
-    print("Dynamic graph processing complete.")
+    print("Static graph processing complete.")
+
+    # # Process dynamic graphs
+    # print("Starting dynamic graph processing...")
+    # with ProcessPoolExecutor() as executor:
+    #     with tqdm(total=len(tasks), desc="Dynamic Graph Progress", unit="task") as pbar:
+    #         future_to_task = {
+    #             executor.submit(
+    #                 process_dynamic_file,
+    #                 dataset,
+    #                 atlas,
+    #                 method,
+    #                 subject_id
+    #             ): (dataset, atlas, method, subject_id)
+    #             for dataset, atlas, method, subject_id in tasks
+    #         }
+    #         for future in as_completed(future_to_task):
+    #             dataset, atlas, method, subject_id = future_to_task[future]
+    #             try:
+    #                 status = future.result()
+    #                 tqdm.write(status)
+    #             except Exception as exc:
+    #                 tqdm.write(f"Error in {dataset}, {atlas}, {method}, {subject_id}: {exc}")
+    #             finally:
+    #                 pbar.update(1)
+
+    # print("Dynamic graph processing complete.")
 
 if __name__ == "__main__":
     main()
