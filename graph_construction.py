@@ -219,31 +219,31 @@ def main():
         print("No tasks found. Please check your input directories and filenames.")
         return
 
-    # Process static graphs
-    print("Starting static graph processing...")
-    with ProcessPoolExecutor() as executor:
-        with tqdm(total=len(tasks), desc="Static Graph Progress", unit="task") as pbar:
-            future_to_task = {
-                executor.submit(
-                    process_file,
-                    dataset,
-                    atlas,
-                    method,
-                    subject_id
-                ): (dataset, atlas, method, subject_id)
-                for dataset, atlas, method, subject_id in tasks
-            }
-            for future in as_completed(future_to_task):
-                dataset, atlas, method, subject_id = future_to_task[future]
-                try:
-                    status = future.result()
-                    tqdm.write(status)
-                except Exception as exc:
-                    tqdm.write(f"Error in {dataset}, {atlas}, {method}, {subject_id}: {exc}")
-                finally:
-                    pbar.update(1)
+    # # Process static graphs
+    # print("Starting static graph processing...")
+    # with ProcessPoolExecutor() as executor:
+    #     with tqdm(total=len(tasks), desc="Static Graph Progress", unit="task") as pbar:
+    #         future_to_task = {
+    #             executor.submit(
+    #                 process_file,
+    #                 dataset,
+    #                 atlas,
+    #                 method,
+    #                 subject_id
+    #             ): (dataset, atlas, method, subject_id)
+    #             for dataset, atlas, method, subject_id in tasks
+    #         }
+    #         for future in as_completed(future_to_task):
+    #             dataset, atlas, method, subject_id = future_to_task[future]
+    #             try:
+    #                 status = future.result()
+    #                 tqdm.write(status)
+    #             except Exception as exc:
+    #                 tqdm.write(f"Error in {dataset}, {atlas}, {method}, {subject_id}: {exc}")
+    #             finally:
+    #                 pbar.update(1)
 
-    print("Static graph processing complete.")
+    # print("Static graph processing complete.")
 
     # Process dynamic graphs
     print("Starting dynamic graph processing...")
